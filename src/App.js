@@ -137,9 +137,7 @@ function App() {
                                 setSpriteFiles(newSpriteFiles)
                             }}
                         />
-                        <label
-                            htmlFor={`check-${name}`
-                            } >
+                        <label htmlFor={`check-${name}`} >
                             {name}
                         </label>
                     </div>
