@@ -105,9 +105,6 @@ function App() {
     }, [spriteFiles, spritesCategories]);
 
     const mergeImages = useCallback(() => {
-        // const canvas = document.createElement('canvas');
-        // canvas.width = spriteSize * 3;
-        // canvas.height = spriteSize * 3;
         const ctx = canvas.current.getContext("2d");
         ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
 
@@ -125,8 +122,23 @@ function App() {
                 };
                 htmlImage.src = image;
             });
-
     }, [spriteFiles, spriteName]);
+
+    useEffect(() => {
+        if (canvas.current) {
+            const ctx = canvas.current.getContext("2d");
+            ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
+
+            const filteredSprites = spriteFiles.filter(({show}) => show);
+            filteredSprites.forEach(({ image }) => {
+                const htmlImage = new Image();
+                htmlImage.onload = function () {
+                    ctx.drawImage(htmlImage, 0, 0);
+                };
+                htmlImage.src = image;
+            });
+        }
+    }, [spriteFiles]);
 
     const [x, y] = spritesOrder[currFrame];
     const containsSprites = spriteFiles.length > 0;
