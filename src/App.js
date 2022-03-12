@@ -1,4 +1,4 @@
-import {Fragment, useCallback, useEffect, useState} from "react";
+import {Fragment, useCallback, useEffect, useRef, useState} from "react";
 import Dropzone from 'react-dropzone'
 
 const spritesOrder = [
@@ -55,8 +55,17 @@ function App() {
     const [spriteSize, setSpriteSize] = useState(20);
     const [spriteName, setSpriteName] = useState('sample');
     const [spriteFiles, setSpriteFiles] = useState([]);
-    const [spritesCategories, setSpritesCategories] = useState(['torsos', 'feet', 'hands', 'heads', 'eyes', 'hairs']);
+    const [spritesCategories, setSpritesCategories] = useState([
+        { name: 'base', canDisable: false },
+        { name: 'torsos' },
+        { name: 'feet' },
+        { name: 'hands' },
+        { name: 'heads' },
+        { name: 'eyes' },
+        { name: 'hairs', randomizerNullable: true },
+    ]);
     const [category, setCategory] = useState(spritesCategories[0]);
+    const canvas = useRef(null);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -83,22 +92,24 @@ function App() {
 
     const randomize = useCallback(() => {
         const newSprites = [...spriteFiles];
-        spritesCategories.forEach((cat) => {
+        spritesCategories.forEach(({ name: cat, randomizerNullable }) => {
             const categorySprites = newSprites.filter((sprite) => sprite.category === cat);
-            const random = Math.floor(Math.random() * categorySprites.length);
+            const random = Math.floor(Math.random() * categorySprites.length) - (randomizerNullable ? Math.round(Math.random()) : 0);
+            console.log({random, cat, newSprites});
             categorySprites.forEach((sprite, index) => {
                 sprite.show = index === random;
             });
         });
 
-        setSpriteFiles(newSprites);
+        setSpriteFiles([...newSprites]);
     }, [spriteFiles, spritesCategories]);
 
     const mergeImages = useCallback(() => {
-        const canvas = document.createElement('canvas');
-        canvas.width = spriteSize * 3;
-        canvas.height = spriteSize * 3;
-        const ctx = canvas.getContext("2d");
+        // const canvas = document.createElement('canvas');
+        // canvas.width = spriteSize * 3;
+        // canvas.height = spriteSize * 3;
+        const ctx = canvas.current.getContext("2d");
+        ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
 
         const filteredSprites = spriteFiles.filter(({show}) => show);
         filteredSprites.forEach(({ image }, index) => {
@@ -108,14 +119,14 @@ function App() {
                     if (index + 1 >= filteredSprites.length) {
                         const aDownloadLink = document.createElement('a');
                         aDownloadLink.download = `${spriteName || 'sample'}.png`;
-                        aDownloadLink.href = canvas.toDataURL('image/png');
+                        aDownloadLink.href = canvas.current.toDataURL('image/png');
                         aDownloadLink.click();
                     }
                 };
                 htmlImage.src = image;
             });
 
-    }, [spriteFiles, spriteName, spriteSize]);
+    }, [spriteFiles, spriteName]);
 
     const [x, y] = spritesOrder[currFrame];
     const containsSprites = spriteFiles.length > 0;
@@ -123,10 +134,13 @@ function App() {
     return (
         <div>
             <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                value={category.name}
+                onChange={(e) => {
+                    const cat = spritesCategories.find(({ name }) => name === e.target.value);
+                    setCategory(cat);
+                }}
             >
-                {spritesCategories.map((cat) => {
+                {spritesCategories.map(({ name: cat }) => {
                     return (
                         <option
                             key={cat}
@@ -145,7 +159,7 @@ function App() {
                             name: acceptedFile.name,
                             image: await getBase64(acceptedFile),
                             show: true,
-                            category,
+                            category: category.name,
                         });
                     }
                     setSpriteFiles(newSprites);
@@ -249,30 +263,42 @@ function App() {
                         Randomize
                     </button>
                     <hr/>
-                    {spriteFiles.map(({image, name, show}) => {
-                        if (!show) {
-                            return null;
-                        }
+                    <div>
+                        {spriteFiles.map(({image, name, show}) => {
+                            if (!show) {
+                                return null;
+                            }
 
-                        return (
-                            <div
-                                key={name}
-                                style={{
-                                    imageRendering: 'pixelated',
-                                    overflow: 'hidden',
-                                    backgroundRepeat: 'no-repeat',
-                                    display: 'table-cell',
-                                    backgroundImage: `url(${image})`,
-                                    width: `${spriteSize}px`,
-                                    height: `${spriteSize}px`,
-                                    transformOrigin: '0px 50%',
-                                    backgroundPosition: `${x * spriteSize}px ${y * spriteSize}px`,
-                                    zoom: scale,
-                                    position: 'absolute',
-                                }}
-                            />
-                        )
-                    })}
+                            return (
+                                <div
+                                    key={name}
+                                    style={{
+                                        imageRendering: 'pixelated',
+                                        overflow: 'hidden',
+                                        backgroundRepeat: 'no-repeat',
+                                        display: 'table-cell',
+                                        backgroundImage: `url(${image})`,
+                                        width: `${spriteSize}px`,
+                                        height: `${spriteSize}px`,
+                                        transformOrigin: '0px 50%',
+                                        backgroundPosition: `${x * spriteSize}px ${y * spriteSize}px`,
+                                        zoom: scale,
+                                        position: 'absolute',
+                                    }}
+                                />
+                            )
+                        })}
+                    </div>
+                    <canvas
+                        ref={canvas}
+                        width={spriteSize * 3}
+                        height={spriteSize * 3}
+                        style={{
+                            zoom: scale,
+                            float: 'right',
+                            marginRight: '20px',
+                        }}
+                    />
                 </Fragment>
             )}
         </div>
