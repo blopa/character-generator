@@ -1,35 +1,5 @@
-import {Fragment, useCallback, useEffect, useRef, useState} from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Dropzone from 'react-dropzone'
-
-const spritesOrder = [
-    // walking down
-    [-1, 0],
-    [-2, 0],
-    [-1, 0],
-    [0, 0],
-    [-1, 0],
-
-    // walking right
-    [-1, -2],
-    [-2, -2],
-    [-1, -2],
-    [0, -2],
-    [-1, -2],
-
-    // walking up
-    [-1, -3],
-    [-2, -3],
-    [-1, -3],
-    [0, -3],
-    [-1, -3],
-
-    // walking left
-    [-1, -1],
-    [-2, -1],
-    [-1, -1],
-    [0, -1],
-    [-1, -1],
-];
 
 function getBase64(file) {
     return new Promise((resolve, reject) => {
@@ -69,6 +39,24 @@ function App() {
     ]);
     const [category, setCategory] = useState(spritesCategories[0]);
     const canvas = useRef(null);
+    const [columns, rows] = gridSize;
+
+    const spritesOrder = useMemo(() => {
+        const result = [];
+        (new Array(rows)).fill(null).forEach((v1, row) => {
+            const cols = [];
+            (new Array(columns)).fill(null).forEach((v2, column) => {
+                cols.push([-column, -row]);
+            });
+
+            result.push(...cols);
+            cols.pop();
+            result.push(...cols.reverse());
+        });
+        // console.log({ result, columns, rows });
+
+        return result;
+    }, [columns, rows]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -80,7 +68,7 @@ function App() {
         }, 1000 / fps);
 
         return () => clearInterval(interval);
-    }, [currFrame, fps]);
+    }, [currFrame, fps, spritesOrder.length]);
 
     const changeSpritePosition = useCallback((from, to) => {
         if (to > spriteFiles.length - 1 || to < 0) {
