@@ -55,6 +55,8 @@ function App() {
     const [spriteSize, setSpriteSize] = useState(20);
     const [spriteName, setSpriteName] = useState('sample');
     const [spriteFiles, setSpriteFiles] = useState([]);
+    const [canvasSize, setCanvasSize] = useState([null, null]);
+    const [gridSize, setGridSize] = useState([null, null]);
     const [spritesCategories, setSpritesCategories] = useState([
         { name: 'base', canDisable: false },
         { name: 'torsos' },
@@ -63,6 +65,7 @@ function App() {
         { name: 'heads' },
         { name: 'eyes' },
         { name: 'hairs', randomizerNullable: true },
+        { name: 'hats', randomizerNullable: true },
     ]);
     const [category, setCategory] = useState(spritesCategories[0]);
     const canvas = useRef(null);
@@ -95,7 +98,7 @@ function App() {
         spritesCategories.forEach(({ name: cat, randomizerNullable }) => {
             const categorySprites = newSprites.filter((sprite) => sprite.category === cat);
             const random = Math.floor(Math.random() * categorySprites.length) - (randomizerNullable ? Math.round(Math.random()) : 0);
-            console.log({random, cat, newSprites});
+            // console.log({random, cat, newSprites});
             categorySprites.forEach((sprite, index) => {
                 sprite.show = index === random;
             });
@@ -124,6 +127,7 @@ function App() {
             });
     }, [spriteFiles, spriteName]);
 
+    const [width, height]  = canvasSize;
     useEffect(() => {
         if (canvas.current) {
             const ctx = canvas.current.getContext("2d");
@@ -134,17 +138,30 @@ function App() {
                 const htmlImage = new Image();
                 htmlImage.onload = function () {
                     ctx.drawImage(htmlImage, 0, 0);
+                    if (canvas.current && !width && !height) {
+                        setCanvasSize([
+                            htmlImage.width,
+                            htmlImage.height
+                        ]);
+                        setGridSize([
+                            // row
+                            htmlImage.width / spriteSize,
+                            // column
+                            htmlImage.height / spriteSize
+                        ]);
+                    }
                 };
                 htmlImage.src = image;
             });
         }
-    }, [spriteFiles]);
+    }, [canvasSize, height, spriteFiles, width]);
 
     const [x, y] = spritesOrder[currFrame];
     const containsSprites = spriteFiles.length > 0;
 
     return (
         <div>
+            <label>Sprite Type: </label>
             <select
                 value={category.name}
                 onChange={(e) => {
@@ -303,12 +320,13 @@ function App() {
                     </div>
                     <canvas
                         ref={canvas}
-                        width={spriteSize * 3}
-                        height={spriteSize * 3}
+                        width={width}
+                        height={height}
                         style={{
                             zoom: scale,
                             float: 'right',
                             marginRight: '20px',
+                            imageRendering: 'pixelated',
                         }}
                     />
                 </Fragment>
