@@ -22,11 +22,13 @@ function App() {
     const [currFrame, setCurrFrame] = useState(0);
     const [fps, setFps] = useState(3);
     const [scale, setScale] = useState(3);
-    const [spriteSize, setSpriteSize] = useState(20);
+    const [spriteWidth, setspriteWidth] = useState(20);
+    const [spriteHeight, setspriteHeight] = useState(20);
     const [spriteName, setSpriteName] = useState('sample');
     const [spriteFiles, setSpriteFiles] = useState([]);
     const [canvasSize, setCanvasSize] = useState([null, null]);
     const [gridSize, setGridSize] = useState([null, null]);
+    const [imageSize, setImageSize] = useState([null, null]);
     const [spritesCategories, setSpritesCategories] = useState([
         { name: 'base', canDisable: false },
         { name: 'torsos' },
@@ -34,6 +36,7 @@ function App() {
         { name: 'hands' },
         { name: 'heads' },
         { name: 'eyes' },
+        { name: 'tools' },
         { name: 'hairs', randomizerNullable: true },
         { name: 'hats', randomizerNullable: true },
     ]);
@@ -121,7 +124,7 @@ function App() {
             const ctx = canvas.current.getContext("2d");
             ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
 
-            const filteredSprites = spriteFiles.filter(({show}) => show);
+            const filteredSprites = spriteFiles.filter(({ show }) => show);
             filteredSprites.forEach(({ image }) => {
                 const htmlImage = new Image();
                 htmlImage.onload = function () {
@@ -131,18 +134,42 @@ function App() {
                             htmlImage.width,
                             htmlImage.height
                         ]);
+
                         setGridSize([
                             // row
-                            htmlImage.width / spriteSize,
+                            htmlImage.width,
                             // column
-                            htmlImage.height / spriteSize
+                            htmlImage.height
                         ]);
+
+                        setImageSize([
+                            // row
+                            htmlImage.width,
+                            // column
+                            htmlImage.height
+                        ]);
+                        setspriteHeight(htmlImage.height);
+                        setspriteWidth(htmlImage.width);
                     }
                 };
                 htmlImage.src = image;
             });
         }
-    }, [canvasSize, height, spriteFiles, width]);
+    }, [canvasSize, height, spriteFiles, width, spriteWidth, spriteHeight]);
+
+    useEffect(() => {
+        const [width, height] = imageSize;
+        console.log(imageSize);
+
+        if (width && height) {
+            setGridSize([
+                // row
+                Math.ceil(width / spriteWidth),
+                // column
+                Math.ceil(height / spriteHeight)
+            ]);
+        }
+    }, [setGridSize, spriteWidth, spriteHeight, imageSize])
 
     const [x, y] = spritesOrder[currFrame];
     const containsSprites = spriteFiles.length > 0;
@@ -169,7 +196,7 @@ function App() {
                 })}
             </select>
             <Dropzone
-                onDrop={async acceptedFiles => {
+                onDrop={async (acceptedFiles) => {
                     const newSprites = [...spriteFiles];
                     for (const acceptedFile of acceptedFiles) {
                         newSprites.push({
@@ -227,13 +254,21 @@ function App() {
                             value={scale}
                             onChange={(e) => setScale(parseInt(e.target.value, 10))}
                         />
-                        <label htmlFor={'spriteSize'}>Sprite Size:</label>
+                        <label htmlFor={'spriteWidth'}>Sprite Width:</label>
                         <input
-                            id={'spriteSize'}
-                            name={'spriteSize'}
+                            id={'spriteWidth'}
+                            name={'spriteWidth'}
                             type={'number'}
-                            value={spriteSize}
-                            onChange={(e) => setSpriteSize(parseInt(e.target.value, 10))}
+                            value={spriteWidth}
+                            onChange={(e) => setspriteWidth(parseInt(e.target.value, 10))}
+                        />
+                        <label htmlFor={'spriteHeight'}>Sprite Height:</label>
+                        <input
+                            id={'spriteHeight'}
+                            name={'spriteHeight'}
+                            type={'number'}
+                            value={spriteHeight}
+                            onChange={(e) => setspriteHeight(parseInt(e.target.value, 10))}
                         />
                     </div>
                     <hr/>
@@ -295,10 +330,10 @@ function App() {
                                         backgroundRepeat: 'no-repeat',
                                         display: 'table-cell',
                                         backgroundImage: `url(${image})`,
-                                        width: `${spriteSize}px`,
-                                        height: `${spriteSize}px`,
+                                        width: `${spriteWidth}px`,
+                                        height: `${spriteWidth}px`,
                                         transformOrigin: '0px 50%',
-                                        backgroundPosition: `${x * spriteSize}px ${y * spriteSize}px`,
+                                        backgroundPosition: `${x * spriteWidth}px ${y * spriteWidth}px`,
                                         zoom: scale,
                                         position: 'absolute',
                                     }}
@@ -315,6 +350,7 @@ function App() {
                             float: 'right',
                             marginRight: '20px',
                             imageRendering: 'pixelated',
+                            display: 'none',
                         }}
                     />
                 </Fragment>
