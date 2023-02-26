@@ -22,8 +22,10 @@ function App() {
     const [currFrame, setCurrFrame] = useState(0);
     const [fps, setFps] = useState(3);
     const [scale, setScale] = useState(3);
-    const [spriteWidth, setspriteWidth] = useState(20);
-    const [spriteHeight, setspriteHeight] = useState(20);
+    const [spriteWidth, setSpriteWidth] = useState(20);
+    const [spriteHeight, setSpriteHeight] = useState(20);
+    const [spriteWidthQty, setSpriteWidthQty] = useState(1);
+    const [spriteHeightQty, setSpriteHeightQty] = useState(1);
     const [spriteName, setSpriteName] = useState('sample');
     const [spriteFiles, setSpriteFiles] = useState([]);
     const [canvasSize, setCanvasSize] = useState([null, null]);
@@ -53,8 +55,10 @@ function App() {
             });
 
             result.push(...cols);
-            cols.pop();
-            result.push(...cols.reverse());
+            // TODO redo this spritesOrder logic
+            // add checkbox to make it reverse or not
+            // cols.pop();
+            // result.push(...cols.reverse());
         });
         // console.log({ result, columns, rows });
 
@@ -82,6 +86,10 @@ function App() {
         const f = newSpriteFiles.splice(from, 1)[0];
         newSpriteFiles.splice(to, 0, f);
         setSpriteFiles(newSpriteFiles);
+    }, [spriteFiles]);
+
+    const removeSprite = useCallback((index) => {
+        setSpriteFiles(spriteFiles.filter((val, idx) => idx !== index));
     }, [spriteFiles]);
 
     const randomize = useCallback(() => {
@@ -148,8 +156,8 @@ function App() {
                             // column
                             htmlImage.height
                         ]);
-                        setspriteHeight(htmlImage.height);
-                        setspriteWidth(htmlImage.width);
+                        setSpriteHeight(htmlImage.height);
+                        setSpriteWidth(htmlImage.width);
                     }
                 };
                 htmlImage.src = image;
@@ -159,7 +167,6 @@ function App() {
 
     useEffect(() => {
         const [width, height] = imageSize;
-        console.log(imageSize);
 
         if (width && height) {
             setGridSize([
@@ -171,7 +178,7 @@ function App() {
         }
     }, [setGridSize, spriteWidth, spriteHeight, imageSize])
 
-    const [x, y] = spritesOrder[currFrame];
+    const [x, y] = spritesOrder?.[currFrame] || [];
     const containsSprites = spriteFiles.length > 0;
 
     return (
@@ -238,38 +245,80 @@ function App() {
                 <Fragment>
                     <hr/>
                     <div>
-                        <label htmlFor={'fps'}>FPS:</label>
-                        <input
-                            id={'fps'}
-                            name={'fps'}
-                            type={'number'}
-                            value={fps}
-                            onChange={(e) => setFps(parseInt(e.target.value, 10))}
-                        />
-                        <label htmlFor={'scale'}>Scale:</label>
-                        <input
-                            id={'scale'}
-                            name={'scale'}
-                            type={'number'}
-                            value={scale}
-                            onChange={(e) => setScale(parseInt(e.target.value, 10))}
-                        />
-                        <label htmlFor={'spriteWidth'}>Sprite Width:</label>
-                        <input
-                            id={'spriteWidth'}
-                            name={'spriteWidth'}
-                            type={'number'}
-                            value={spriteWidth}
-                            onChange={(e) => setspriteWidth(parseInt(e.target.value, 10))}
-                        />
-                        <label htmlFor={'spriteHeight'}>Sprite Height:</label>
-                        <input
-                            id={'spriteHeight'}
-                            name={'spriteHeight'}
-                            type={'number'}
-                            value={spriteHeight}
-                            onChange={(e) => setspriteHeight(parseInt(e.target.value, 10))}
-                        />
+                        <div>
+                            <label htmlFor={'fps'}>FPS:</label>
+                            <input
+                                id={'fps'}
+                                name={'fps'}
+                                type={'number'}
+                                value={fps}
+                                onChange={(e) => setFps(parseInt(e.target.value, 10))}
+                            />
+                            <label htmlFor={'scale'}>Scale:</label>
+                            <input
+                                id={'scale'}
+                                name={'scale'}
+                                type={'number'}
+                                value={scale}
+                                onChange={(e) => setScale(parseInt(e.target.value, 10))}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor={'spriteWidth'}>Sprite Width:</label>
+                            <input
+                                id={'spriteWidth'}
+                                name={'spriteWidth'}
+                                type={'number'}
+                                value={spriteWidth}
+                                onChange={(e) => {
+                                    const [width, height] = imageSize;
+                                    const val = parseInt(e.target.value, 10);
+                                    setSpriteWidthQty(width / val);
+                                    setSpriteWidth(val);
+                                }}
+                            />
+                            <label htmlFor={'spriteHeight'}>Sprite Height:</label>
+                            <input
+                                id={'spriteHeight'}
+                                name={'spriteHeight'}
+                                type={'number'}
+                                value={spriteHeight}
+                                onChange={(e) => {
+                                    const [width, height] = imageSize;
+                                    const val = parseInt(e.target.value, 10);
+                                    setSpriteHeightQty(height / val);
+                                    setSpriteHeight(val);
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor={'spriteWidthQty'}>Sprite Width Qty:</label>
+                            <input
+                                id={'spriteWidthQty'}
+                                name={'spriteWidthQty'}
+                                type={'number'}
+                                value={spriteWidthQty}
+                                onChange={(e) => {
+                                    const [width, height] = imageSize;
+                                    const val = parseInt(e.target.value, 10);
+                                    setSpriteWidth(width / val);
+                                    setSpriteWidthQty(val);
+                                }}
+                            />
+                            <label htmlFor={'spriteHeightQty'}>Sprite Height Qty:</label>
+                            <input
+                                id={'spriteHeightQty'}
+                                name={'spriteHeightQty'}
+                                type={'number'}
+                                value={spriteHeightQty}
+                                onChange={(e) => {
+                                    const [width, height] = imageSize;
+                                    const val = parseInt(e.target.value, 10);
+                                    setSpriteHeight(height / val);
+                                    setSpriteHeightQty(val);
+                                }}
+                            />
+                        </div>
                     </div>
                     <hr/>
                     {spriteFiles.map(({ image, name, show, category: cat }, index) => {
@@ -292,9 +341,23 @@ function App() {
                                 <label htmlFor={`check-${name}`}>
                                     {name} - {cat}
                                 </label>
-                                <button onClick={() => changeSpritePosition(index, index - 1)} type={'button'}>⬆️
+                                <button
+                                    onClick={() => changeSpritePosition(index, index - 1)}
+                                    type={'button'}
+                                >
+                                    ⬆️
                                 </button>
-                                <button onClick={() => changeSpritePosition(index, index + 1)} type={'button'}>⬇️️
+                                <button
+                                    onClick={() => changeSpritePosition(index, index + 1)}
+                                    type={'button'}
+                                >
+                                    ⬇️️
+                                </button>
+                                <button
+                                    onClick={() => removeSprite(index, name)}
+                                    type={'button'}
+                                >
+                                    🗑️
                                 </button>
                             </div>
                         );
