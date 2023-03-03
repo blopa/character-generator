@@ -8,12 +8,12 @@
     "@testing-library/user-event": "^13.5.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-dropzone": "^12.1.0",
+    "react-dropzone": "^14.2.3",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
-    "npm-check-updates": "^16.7.9"
+    "npm-check-updates": "^16.7.10"
   },
   "scripts": {
     "start": "react-scripts start",

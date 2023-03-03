@@ -1,5 +1,7 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Dropzone from 'react-dropzone'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Dropzone from 'react-dropzone';
+
+const MAX_NAME_SIZE = 20;
 
 function getBase64(file) {
     return new Promise((resolve, reject) => {
@@ -339,7 +341,7 @@ function App() {
                                     }}
                                 />
                                 <label htmlFor={`check-${name}`}>
-                                    {name} - {cat}
+                                    {name.length > MAX_NAME_SIZE ? name.substring(0, MAX_NAME_SIZE) + '...' : name} - {cat} {" "}
                                 </label>
                                 <button
                                     onClick={() => changeSpritePosition(index, index - 1)}
@@ -394,9 +396,9 @@ function App() {
                                         display: 'table-cell',
                                         backgroundImage: `url(${image})`,
                                         width: `${spriteWidth}px`,
-                                        height: `${spriteWidth}px`,
+                                        height: `${spriteHeight}px`,
                                         transformOrigin: '0px 50%',
-                                        backgroundPosition: `${x * spriteWidth}px ${y * spriteWidth}px`,
+                                        backgroundPosition: `${x * spriteWidth}px ${y * spriteHeight}px`,
                                         zoom: scale,
                                         position: 'absolute',
                                     }}
