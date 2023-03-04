@@ -33,6 +33,7 @@ function App() {
     const [canvasSize, setCanvasSize] = useState([null, null]);
     const [gridSize, setGridSize] = useState([null, null]);
     const [imageSize, setImageSize] = useState([null, null]);
+    const [order, setOrder] = useState('columns');
     const [spritesCategories, setSpritesCategories] = useState([
         { name: 'base', canDisable: false },
         { name: 'torsos' },
@@ -50,10 +51,11 @@ function App() {
 
     const spritesOrder = useMemo(() => {
         const result = [];
-        (new Array(rows)).fill(null).forEach((v1, row) => {
+        const isColumns = order === 'columns';
+        (new Array(isColumns ? columns : rows)).fill(null).forEach((v1, row) => {
             const cols = [];
-            (new Array(columns)).fill(null).forEach((v2, column) => {
-                cols.push([-column, -row]);
+            (new Array(isColumns ? rows : columns)).fill(null).forEach((v2, column) => {
+                cols.push(isColumns ? [-row, -column] : [-column, -row]);
             });
 
             result.push(...cols);
@@ -62,10 +64,9 @@ function App() {
             // cols.pop();
             // result.push(...cols.reverse());
         });
-        // console.log({ result, columns, rows });
 
         return result;
-    }, [columns, rows]);
+    }, [columns, rows, order]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -94,12 +95,15 @@ function App() {
         setSpriteFiles(spriteFiles.filter((val, idx) => idx !== index));
     }, [spriteFiles]);
 
+    const handleOrderChange = useCallback((e) => {
+        setOrder(e.target.value);
+    }, [setOrder]);
+
     const randomize = useCallback(() => {
         const newSprites = [...spriteFiles];
         spritesCategories.forEach(({ name: cat, randomizerNullable }) => {
             const categorySprites = newSprites.filter((sprite) => sprite.category === cat);
             const random = Math.floor(Math.random() * categorySprites.length) - (randomizerNullable ? Math.round(Math.random()) : 0);
-            // console.log({random, cat, newSprites});
             categorySprites.forEach((sprite, index) => {
                 sprite.show = index === random;
             });
@@ -248,11 +252,19 @@ function App() {
                     <hr/>
                     <div>
                         <div>
+                            <label htmlFor={'fps'}>Order:</label>
+                            <select onChange={handleOrderChange}>
+                                <option value={'columns'}>Columns - Rows</option>
+                                <option value={'rows'}>Rows - Columns</option>
+                            </select>
+                        </div>
+                        <div>
                             <label htmlFor={'fps'}>FPS:</label>
                             <input
                                 id={'fps'}
                                 name={'fps'}
                                 type={'number'}
+                                min={'1'}
                                 value={fps}
                                 onChange={(e) => setFps(parseInt(e.target.value, 10))}
                             />
@@ -261,6 +273,7 @@ function App() {
                                 id={'scale'}
                                 name={'scale'}
                                 type={'number'}
+                                min={'1'}
                                 value={scale}
                                 onChange={(e) => setScale(parseInt(e.target.value, 10))}
                             />
@@ -271,6 +284,7 @@ function App() {
                                 id={'spriteWidth'}
                                 name={'spriteWidth'}
                                 type={'number'}
+                                min={'1'}
                                 value={spriteWidth}
                                 onChange={(e) => {
                                     const [width, height] = imageSize;
@@ -284,6 +298,7 @@ function App() {
                                 id={'spriteHeight'}
                                 name={'spriteHeight'}
                                 type={'number'}
+                                min={'1'}
                                 value={spriteHeight}
                                 onChange={(e) => {
                                     const [width, height] = imageSize;
@@ -299,6 +314,7 @@ function App() {
                                 id={'spriteWidthQty'}
                                 name={'spriteWidthQty'}
                                 type={'number'}
+                                min={'1'}
                                 value={spriteWidthQty}
                                 onChange={(e) => {
                                     const [width, height] = imageSize;
@@ -312,6 +328,7 @@ function App() {
                                 id={'spriteHeightQty'}
                                 name={'spriteHeightQty'}
                                 type={'number'}
+                                min={'1'}
                                 value={spriteHeightQty}
                                 onChange={(e) => {
                                     const [width, height] = imageSize;
