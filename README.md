@@ -1,1 +1,1 @@
-## Try it out: https://blopa.github.io/chargen/
+## Try it out: https://blopa.github.io/character-generator/

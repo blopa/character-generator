@@ -1,24 +1,11 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Dropzone from 'react-dropzone';
+import { useState, useMemo, useEffect, useRef, useCallback, Fragment } from 'react';
+import Dropzone from './components/DropZone';
 
+// Utils
+import { getBase64 } from './utils/utils';
+
+// Constants
 const MAX_NAME_SIZE = 20;
-
-function getBase64(file) {
-    return new Promise((resolve, reject) => {
-        let contents = ""
-        const reader = new FileReader()
-        reader.readAsDataURL(file);
-
-        reader.onload = function (e) {
-            contents = e.target.result
-            resolve(contents)
-        }
-
-        reader.onerror = function (e) {
-            reject(e)
-        }
-    })
-}
 
 function App() {
     const [currFrame, setCurrFrame] = useState(0);
@@ -103,8 +90,12 @@ function App() {
         const newSprites = [...spriteFiles];
         spritesCategories.forEach(({ name: cat, randomizerNullable }) => {
             const categorySprites = newSprites.filter((sprite) => sprite.category === cat);
-            const random = Math.floor(Math.random() * categorySprites.length) - (randomizerNullable ? Math.round(Math.random()) : 0);
+            const random =
+                Math.floor(Math.random() * categorySprites.length)
+                - (randomizerNullable ? Math.round(Math.random()) : 0);
+
             categorySprites.forEach((sprite, index) => {
+                // eslint-disable-next-line no-param-reassign
                 sprite.show = index === random;
             });
         });
@@ -113,59 +104,59 @@ function App() {
     }, [spriteFiles, spritesCategories]);
 
     const mergeImages = useCallback(() => {
-        const ctx = canvas.current.getContext("2d");
+        const ctx = canvas.current.getContext('2d');
         ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
 
-        const filteredSprites = spriteFiles.filter(({show}) => show);
+        const filteredSprites = spriteFiles.filter(({ show }) => show);
         filteredSprites.forEach(({ image }, index) => {
-                const htmlImage = new Image();
-                htmlImage.onload = function () {
-                    ctx.drawImage(htmlImage, 0, 0);
-                    if (index + 1 >= filteredSprites.length) {
-                        const aDownloadLink = document.createElement('a');
-                        aDownloadLink.download = `${spriteName || 'sample'}.png`;
-                        aDownloadLink.href = canvas.current.toDataURL('image/png');
-                        aDownloadLink.click();
-                    }
-                };
-                htmlImage.src = image;
+            const htmlImage = new Image();
+            htmlImage.addEventListener('load', () => {
+                ctx.drawImage(htmlImage, 0, 0);
+                if (index + 1 >= filteredSprites.length) {
+                    const aDownloadLink = document.createElement('a');
+                    aDownloadLink.download = `${spriteName || 'sample'}.png`;
+                    aDownloadLink.href = canvas.current.toDataURL('image/png');
+                    aDownloadLink.click();
+                }
             });
+            htmlImage.src = image;
+        });
     }, [spriteFiles, spriteName]);
 
-    const [width, height]  = canvasSize;
+    const [width, height] = canvasSize;
     useEffect(() => {
         if (canvas.current) {
-            const ctx = canvas.current.getContext("2d");
+            const ctx = canvas.current.getContext('2d');
             ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
 
             const filteredSprites = spriteFiles.filter(({ show }) => show);
             filteredSprites.forEach(({ image }) => {
                 const htmlImage = new Image();
-                htmlImage.onload = function () {
+                htmlImage.addEventListener('load', () => {
                     ctx.drawImage(htmlImage, 0, 0);
                     if (canvas.current && !width && !height) {
                         setCanvasSize([
                             htmlImage.width,
-                            htmlImage.height
+                            htmlImage.height,
                         ]);
 
                         setGridSize([
                             // row
                             htmlImage.width,
                             // column
-                            htmlImage.height
+                            htmlImage.height,
                         ]);
 
                         setImageSize([
                             // row
                             htmlImage.width,
                             // column
-                            htmlImage.height
+                            htmlImage.height,
                         ]);
                         setSpriteHeight(htmlImage.height);
                         setSpriteWidth(htmlImage.width);
                     }
-                };
+                });
                 htmlImage.src = image;
             });
         }
@@ -179,13 +170,29 @@ function App() {
                 // row
                 Math.ceil(width / spriteWidth),
                 // column
-                Math.ceil(height / spriteHeight)
+                Math.ceil(height / spriteHeight),
             ]);
         }
-    }, [setGridSize, spriteWidth, spriteHeight, imageSize])
+    }, [setGridSize, spriteWidth, spriteHeight, imageSize]);
 
     const [x, y] = spritesOrder?.[currFrame] || [];
     const containsSprites = spriteFiles.length > 0;
+
+    const handleOnDrop = useCallback(async (acceptedFiles) => {
+        const newSprites = [...spriteFiles];
+        // eslint-disable-next-line no-restricted-syntax
+        for (const acceptedFile of acceptedFiles) {
+            newSprites.push({
+                name: acceptedFile.name,
+                // eslint-disable-next-line no-await-in-loop
+                image: await getBase64(acceptedFile),
+                show: true,
+                category: category.name,
+            });
+        }
+
+        setSpriteFiles(newSprites);
+    }, [spriteFiles, category.name]);
 
     return (
         <div>
@@ -197,208 +204,166 @@ function App() {
                     setCategory(cat);
                 }}
             >
-                {spritesCategories.map(({ name: cat }) => {
-                    return (
-                        <option
-                            key={cat}
-                            value={cat}
-                        >
-                            {cat}
-                        </option>
-                    );
-                })}
+                {spritesCategories.map(({ name: cat }) => (
+                    <option
+                        key={cat}
+                        value={cat}
+                    >
+                        {cat}
+                    </option>
+                ))}
             </select>
-            <Dropzone
-                onDrop={async (acceptedFiles) => {
-                    const newSprites = [...spriteFiles];
-                    for (const acceptedFile of acceptedFiles) {
-                        newSprites.push({
-                            name: acceptedFile.name,
-                            image: await getBase64(acceptedFile),
-                            show: true,
-                            category: category.name,
-                        });
-                    }
-                    setSpriteFiles(newSprites);
-                }}
-            >
-                {({getRootProps, getInputProps}) => (
-                    <section>
-                        <div {...getRootProps({
-                            style: {
-                                flex: 1,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                padding: '20px',
-                                borderWidth: 2,
-                                borderRadius: 2,
-                                borderColor: '#eeeeee',
-                                borderStyle: 'dashed',
-                                backgroundColor: '#fafafa',
-                                color: '#bdbdbd',
-                                outline: 'none',
-                                transition: 'border .24s ease-in-out'
-                            }
-                        })}>
-                            <input {...getInputProps()} />
-                            <p>Drag 'n' drop some files here, or click to select files</p>
-                        </div>
-                    </section>
-                )}
-            </Dropzone>
+            <Dropzone onDrop={handleOnDrop} />
             {containsSprites && (
                 <Fragment>
-                    <hr/>
+                    <hr />
                     <div>
                         <div>
-                            <label htmlFor={'fps'}>Order:</label>
+                            <label htmlFor="fps">Order:</label>
                             <select onChange={handleOrderChange}>
-                                <option value={'columns'}>Columns - Rows</option>
-                                <option value={'rows'}>Rows - Columns</option>
+                                <option value="columns">Columns - Rows</option>
+                                <option value="rows">Rows - Columns</option>
                             </select>
                         </div>
                         <div>
-                            <label htmlFor={'fps'}>FPS:</label>
+                            <label htmlFor="fps">FPS:</label>
                             <input
-                                id={'fps'}
-                                name={'fps'}
-                                type={'number'}
-                                min={'1'}
+                                id="fps"
+                                name="fps"
+                                type="number"
+                                min="1"
                                 value={fps}
-                                onChange={(e) => setFps(parseInt(e.target.value, 10))}
+                                onChange={(e) => setFps(Number.parseInt(e.target.value, 10))}
                             />
-                            <label htmlFor={'scale'}>Scale:</label>
+                            <label htmlFor="scale">Scale:</label>
                             <input
-                                id={'scale'}
-                                name={'scale'}
-                                type={'number'}
-                                min={'1'}
+                                id="scale"
+                                name="scale"
+                                type="number"
+                                min="1"
                                 value={scale}
-                                onChange={(e) => setScale(parseInt(e.target.value, 10))}
+                                onChange={(e) => setScale(Number.parseInt(e.target.value, 10))}
                             />
                         </div>
                         <div>
-                            <label htmlFor={'spriteWidth'}>Sprite Width:</label>
+                            <label htmlFor="spriteWidth">Sprite Width:</label>
                             <input
-                                id={'spriteWidth'}
-                                name={'spriteWidth'}
-                                type={'number'}
-                                min={'1'}
+                                id="spriteWidth"
+                                name="spriteWidth"
+                                type="number"
+                                min="1"
                                 value={spriteWidth}
                                 onChange={(e) => {
                                     const [width, height] = imageSize;
-                                    const val = parseInt(e.target.value, 10);
+                                    const val = Number.parseInt(e.target.value, 10);
                                     setSpriteWidthQty(width / val);
                                     setSpriteWidth(val);
                                 }}
                             />
-                            <label htmlFor={'spriteHeight'}>Sprite Height:</label>
+                            <label htmlFor="spriteHeight">Sprite Height:</label>
                             <input
-                                id={'spriteHeight'}
-                                name={'spriteHeight'}
-                                type={'number'}
-                                min={'1'}
+                                id="spriteHeight"
+                                name="spriteHeight"
+                                type="number"
+                                min="1"
                                 value={spriteHeight}
                                 onChange={(e) => {
                                     const [width, height] = imageSize;
-                                    const val = parseInt(e.target.value, 10);
+                                    const val = Number.parseInt(e.target.value, 10);
                                     setSpriteHeightQty(height / val);
                                     setSpriteHeight(val);
                                 }}
                             />
                         </div>
                         <div>
-                            <label htmlFor={'spriteWidthQty'}>Sprite Width Qty:</label>
+                            <label htmlFor="spriteWidthQty">Sprite Width Qty:</label>
                             <input
-                                id={'spriteWidthQty'}
-                                name={'spriteWidthQty'}
-                                type={'number'}
-                                min={'1'}
+                                id="spriteWidthQty"
+                                name="spriteWidthQty"
+                                type="number"
+                                min="1"
                                 value={spriteWidthQty}
                                 onChange={(e) => {
                                     const [width, height] = imageSize;
-                                    const val = parseInt(e.target.value, 10);
+                                    const val = Number.parseInt(e.target.value, 10);
                                     setSpriteWidth(width / val);
                                     setSpriteWidthQty(val);
                                 }}
                             />
-                            <label htmlFor={'spriteHeightQty'}>Sprite Height Qty:</label>
+                            <label htmlFor="spriteHeightQty">Sprite Height Qty:</label>
                             <input
-                                id={'spriteHeightQty'}
-                                name={'spriteHeightQty'}
-                                type={'number'}
-                                min={'1'}
+                                id="spriteHeightQty"
+                                name="spriteHeightQty"
+                                type="number"
+                                min="1"
                                 value={spriteHeightQty}
                                 onChange={(e) => {
                                     const [width, height] = imageSize;
-                                    const val = parseInt(e.target.value, 10);
+                                    const val = Number.parseInt(e.target.value, 10);
                                     setSpriteHeight(height / val);
                                     setSpriteHeightQty(val);
                                 }}
                             />
                         </div>
                     </div>
-                    <hr/>
-                    {spriteFiles.map(({ image, name, show, category: cat }, index) => {
-                        return (
-                            <div key={name}>
-                                <input
-                                    id={`check-${name}`}
-                                    type={"checkbox"}
-                                    checked={show}
-                                    onChange={() => {
-                                        const newSpriteFiles = [...spriteFiles];
-                                        newSpriteFiles[index] = {
-                                            ...newSpriteFiles[index],
-                                            show: !show,
-                                        }
+                    <hr />
+                    {spriteFiles.map(({ image, name, show, category: cat }, index) => (
+                        <div key={name}>
+                            <input
+                                id={`check-${name}`}
+                                type="checkbox"
+                                checked={show}
+                                onChange={() => {
+                                    const newSpriteFiles = [...spriteFiles];
+                                    newSpriteFiles[index] = {
+                                        ...newSpriteFiles[index],
+                                        show: !show,
+                                    };
 
-                                        setSpriteFiles(newSpriteFiles)
-                                    }}
-                                />
-                                <label htmlFor={`check-${name}`}>
-                                    {name.length > MAX_NAME_SIZE ? name.substring(0, MAX_NAME_SIZE) + '...' : name} - {cat} {" "}
-                                </label>
-                                <button
-                                    onClick={() => changeSpritePosition(index, index - 1)}
-                                    type={'button'}
-                                >
-                                    ⬆️
-                                </button>
-                                <button
-                                    onClick={() => changeSpritePosition(index, index + 1)}
-                                    type={'button'}
-                                >
-                                    ⬇️️
-                                </button>
-                                <button
-                                    onClick={() => removeSprite(index, name)}
-                                    type={'button'}
-                                >
-                                    🗑️
-                                </button>
-                            </div>
-                        );
-                    })}
-                    <hr/>
-                    <label htmlFor={'spriteName'}>Sprite Name:</label>
+                                    setSpriteFiles(newSpriteFiles);
+                                }}
+                            />
+                            <label htmlFor={`check-${name}`}>
+                                {name.length > MAX_NAME_SIZE ? `${name.substring(0, MAX_NAME_SIZE)}...` : name} - {cat} {' '}
+                            </label>
+                            <button
+                                onClick={() => changeSpritePosition(index, index - 1)}
+                                type="button"
+                            >
+                                ⬆️
+                            </button>
+                            <button
+                                onClick={() => changeSpritePosition(index, index + 1)}
+                                type="button"
+                            >
+                                ⬇️️
+                            </button>
+                            <button
+                                onClick={() => removeSprite(index, name)}
+                                type="button"
+                            >
+                                🗑️
+                            </button>
+                        </div>
+                    ))}
+                    <hr />
+                    <label htmlFor="spriteName">Sprite Name:</label>
                     <input
-                        id={'spriteName'}
-                        name={'spriteName'}
-                        type={'spriteName'}
+                        id="spriteName"
+                        name="spriteName"
+                        type="spriteName"
                         value={spriteName}
                         onChange={(e) => setSpriteName(e.target.value)}
                     />
-                    <button onClick={mergeImages} type={'button'}>
+                    <button onClick={mergeImages} type="button">
                         Save
                     </button>
-                    <button onClick={randomize} type={'button'}>
+                    <button onClick={randomize} type="button">
                         Randomize
                     </button>
-                    <hr/>
+                    <hr />
                     <div>
-                        {spriteFiles.map(({image, name, show}) => {
+                        {spriteFiles.map(({ image, name, show }) => {
                             if (!show) {
                                 return null;
                             }
@@ -420,7 +385,7 @@ function App() {
                                         position: 'absolute',
                                     }}
                                 />
-                            )
+                            );
                         })}
                     </div>
                     <canvas
