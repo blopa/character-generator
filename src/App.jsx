@@ -1,5 +1,19 @@
 import { useState, useMemo, useEffect, useRef, useCallback, Fragment } from 'react';
-import {Container, Select, MenuItem, InputLabel, FormControl, TextField, Divider} from '@mui/material';
+import {
+    Container,
+    Select,
+    MenuItem,
+    InputLabel,
+    FormControl,
+    TextField,
+    Divider,
+    Checkbox,
+    Typography,
+    IconButton,
+    Box,
+    Button,
+} from '@mui/material';
+import { KeyboardArrowDown, KeyboardArrowUp, RemoveCircleOutlined } from '@mui/icons-material';
 import Dropzone from './components/DropZone';
 
 // Styles
@@ -301,7 +315,6 @@ function App() {
                         </FormControl>
                         <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }} size="small">
                             <div style={{ display: 'inline-flex' }}>
-
                                 <TextField
                                     id="spriteWidthQty"
                                     label="Sprite Width Qty"
@@ -342,10 +355,9 @@ function App() {
                     </div>
                     <Divider sx={{ marginTop: '10px', marginBottom: '10px' }} />
                     {spriteFiles.map(({ image, name, show, category: cat }, index) => (
-                        <div key={name}>
-                            <input
+                        <Box key={name} display="flex" alignItems="center">
+                            <Checkbox
                                 id={`check-${name}`}
-                                type="checkbox"
                                 checked={show}
                                 onChange={() => {
                                     const newSpriteFiles = [...spriteFiles];
@@ -353,48 +365,53 @@ function App() {
                                         ...newSpriteFiles[index],
                                         show: !show,
                                     };
-
                                     setSpriteFiles(newSpriteFiles);
                                 }}
                             />
-                            <label htmlFor={`check-${name}`}>
+                            <Typography htmlFor={`check-${name}`} variant="body1">
                                 {name.length > MAX_NAME_SIZE ? `${name.substring(0, MAX_NAME_SIZE)}...` : name} - {cat} {' '}
-                            </label>
-                            <button
-                                onClick={() => changeSpritePosition(index, index - 1)}
-                                type="button"
-                            >
-                                ⬆️
-                            </button>
-                            <button
-                                onClick={() => changeSpritePosition(index, index + 1)}
-                                type="button"
-                            >
-                                ⬇️️
-                            </button>
-                            <button
-                                onClick={() => removeSprite(index, name)}
-                                type="button"
-                            >
-                                🗑️
-                            </button>
-                        </div>
+                            </Typography>
+                            <IconButton onClick={() => changeSpritePosition(index, index - 1)} type="button">
+                                <KeyboardArrowUp />
+                            </IconButton>
+                            <IconButton onClick={() => changeSpritePosition(index, index + 1)} type="button">
+                                <KeyboardArrowDown />
+                            </IconButton>
+                            <IconButton onClick={() => removeSprite(index, name)} type="button">
+                                <RemoveCircleOutlined />
+                            </IconButton>
+                        </Box>
                     ))}
                     <Divider sx={{ marginTop: '10px', marginBottom: '10px' }} />
-                    <label htmlFor="spriteName">Sprite Name:</label>
-                    <input
-                        id="spriteName"
-                        name="spriteName"
-                        type="spriteName"
-                        value={spriteName}
-                        onChange={(e) => setSpriteName(e.target.value)}
-                    />
-                    <button onClick={mergeImages} type="button">
-                        Save
-                    </button>
-                    <button onClick={randomize} type="button">
-                        Randomize
-                    </button>
+                    <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }}>
+                        <div style={{ display: 'inline-flex' }}>
+                            <TextField
+                                id="spriteName"
+                                label="Sprite Name"
+                                variant="outlined"
+                                value={spriteName}
+                                size="small"
+                                sx={{ marginRight: '5px' }}
+                                onChange={(e) => setSpriteName(e.target.value)}
+                            />
+                            <Button
+                                onClick={mergeImages}
+                                variant="contained"
+                                color="primary"
+                                sx={{ marginRight: '5px' }}
+                            >
+                                Save
+                            </Button>
+                            <Button
+                                onClick={randomize}
+                                variant="contained"
+                                color="secondary"
+                            >
+                                Randomize
+                            </Button>
+                        </div>
+                    </FormControl>
+
                     <Divider sx={{ marginTop: '10px', marginBottom: '10px' }} />
                     <div>
                         {spriteFiles.map(({ image, name, show }) => {
