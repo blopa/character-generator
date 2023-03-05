@@ -53,14 +53,14 @@ function App() {
     const [category, setCategory] = useState(spritesCategories[0]);
     const canvas = useRef(null);
     const [columns, rows] = gridSize;
+    const isColumns = order === 'columns';
 
     const spritesOrder = useMemo(() => {
         const result = [];
-        const isColumns = order === 'columns';
-        (new Array(isColumns ? columns : rows)).fill(null).forEach((v1, row) => {
+        (new Array(isColumns ? columns : rows)).fill(null).forEach((v1, rc) => {
             const cols = [];
-            (new Array(isColumns ? rows : columns)).fill(null).forEach((v2, column) => {
-                cols.push(isColumns ? [-row, -column] : [-column, -row]);
+            (new Array(isColumns ? rows : columns)).fill(null).forEach((v2, cr) => {
+                cols.push(isColumns ? [-rc, -cr] : [-cr, -rc]);
             });
 
             result.push(...cols);
@@ -71,7 +71,7 @@ function App() {
         });
 
         return result;
-    }, [columns, rows, order]);
+    }, [columns, rows, order, isColumns]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -414,30 +414,36 @@ function App() {
 
                     <Divider sx={{ marginTop: '10px', marginBottom: '10px' }} />
                     <div>
-                        {spriteFiles.map(({ image, name, show }) => {
-                            if (!show) {
-                                return null;
-                            }
+                        {(new Array(isColumns ? columns : rows)).fill(null).map((v, rc) => (
+                            <div style={{ marginLeft: `${spriteWidth * rc * scale}px` }}>
+                                {spriteFiles.map(({ image, name, show }) => {
+                                    if (!show) {
+                                        return null;
+                                    }
 
-                            return (
-                                <div
-                                    key={name}
-                                    style={{
-                                        imageRendering: 'pixelated',
-                                        overflow: 'hidden',
-                                        backgroundRepeat: 'no-repeat',
-                                        display: 'table-cell',
-                                        backgroundImage: `url(${image})`,
-                                        width: `${spriteWidth}px`,
-                                        height: `${spriteHeight}px`,
-                                        transformOrigin: '0px 50%',
-                                        backgroundPosition: `${x * spriteWidth}px ${y * spriteHeight}px`,
-                                        zoom: scale,
-                                        position: 'absolute',
-                                    }}
-                                />
-                            );
-                        })}
+                                    return (
+                                        <div
+                                            // eslint-disable-next-line react/no-array-index-key
+                                            key={`${name}-${rc}`}
+                                            style={{
+                                                imageRendering: 'pixelated',
+                                                overflow: 'hidden',
+                                                backgroundRepeat: 'no-repeat',
+                                                display: 'table-cell',
+                                                backgroundImage: `url(${image})`,
+                                                width: `${spriteWidth}px`,
+                                                height: `${spriteHeight}px`,
+                                                transformOrigin: '0px 50%',
+                                                backgroundPosition:
+                                                        `${(isColumns ? -rc : x) * spriteWidth}px ${(!isColumns ? -rc : y) * spriteHeight}px`,
+                                                zoom: scale,
+                                                position: 'absolute',
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        ))}
                     </div>
                     <canvas
                         ref={canvas}
