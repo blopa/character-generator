@@ -1,5 +1,9 @@
 import { useState, useMemo, useEffect, useRef, useCallback, Fragment } from 'react';
+import {Container, Select, MenuItem, InputLabel, FormControl, TextField, Divider} from '@mui/material';
 import Dropzone from './components/DropZone';
+
+// Styles
+import styles from './App.module.css';
 
 // Utils
 import { getBase64 } from './utils/utils';
@@ -195,118 +199,148 @@ function App() {
     }, [spriteFiles, category.name]);
 
     return (
-        <div>
-            <label>Sprite Type: </label>
-            <select
-                value={category.name}
-                onChange={(e) => {
-                    const cat = spritesCategories.find(({ name }) => name === e.target.value);
-                    setCategory(cat);
-                }}
-            >
-                {spritesCategories.map(({ name: cat }) => (
-                    <option
-                        key={cat}
-                        value={cat}
-                    >
-                        {cat}
-                    </option>
-                ))}
-            </select>
+        <Container className={styles.container} maxWidth="lg">
+            <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }} size="small">
+                <InputLabel htmlFor="sprite-type-select">Sprite Type</InputLabel>
+                <Select
+                    labelId="sprite-type-label"
+                    id="sprite-type-select"
+                    value={category.name}
+                    onChange={(e) => {
+                        const cat = spritesCategories.find(({ name }) => name === e.target.value);
+                        setCategory(cat);
+                    }}
+                    label="Sprite Type"
+                >
+                    {spritesCategories.map(({ name: cat }) => (
+                        <MenuItem key={cat} value={cat}>
+                            {cat}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
             <Dropzone onDrop={handleOnDrop} />
             {containsSprites && (
                 <Fragment>
-                    <hr />
+                    <Divider sx={{ marginTop: '10px', marginBottom: '10px' }} />
                     <div>
                         <div>
-                            <label htmlFor="fps">Order:</label>
-                            <select onChange={handleOrderChange}>
-                                <option value="columns">Columns - Rows</option>
-                                <option value="rows">Rows - Columns</option>
-                            </select>
+                            <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }} size="small">
+                                <InputLabel htmlFor="sprite-order">Order</InputLabel>
+                                <Select
+                                    labelId="sprite-order"
+                                    id="sprite-order"
+                                    value={order}
+                                    onChange={handleOrderChange}
+                                    label="Order"
+                                >
+                                    <MenuItem value="columns">
+                                        Columns - Rows
+                                    </MenuItem>
+                                    <MenuItem value="rows">
+                                        Rows - Columns
+                                    </MenuItem>
+                                </Select>
+                            </FormControl>
                         </div>
-                        <div>
-                            <label htmlFor="fps">FPS:</label>
-                            <input
-                                id="fps"
-                                name="fps"
-                                type="number"
-                                min="1"
-                                value={fps}
-                                onChange={(e) => setFps(Number.parseInt(e.target.value, 10))}
-                            />
-                            <label htmlFor="scale">Scale:</label>
-                            <input
-                                id="scale"
-                                name="scale"
-                                type="number"
-                                min="1"
-                                value={scale}
-                                onChange={(e) => setScale(Number.parseInt(e.target.value, 10))}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="spriteWidth">Sprite Width:</label>
-                            <input
-                                id="spriteWidth"
-                                name="spriteWidth"
-                                type="number"
-                                min="1"
-                                value={spriteWidth}
-                                onChange={(e) => {
-                                    const [width, height] = imageSize;
-                                    const val = Number.parseInt(e.target.value, 10);
-                                    setSpriteWidthQty(width / val);
-                                    setSpriteWidth(val);
-                                }}
-                            />
-                            <label htmlFor="spriteHeight">Sprite Height:</label>
-                            <input
-                                id="spriteHeight"
-                                name="spriteHeight"
-                                type="number"
-                                min="1"
-                                value={spriteHeight}
-                                onChange={(e) => {
-                                    const [width, height] = imageSize;
-                                    const val = Number.parseInt(e.target.value, 10);
-                                    setSpriteHeightQty(height / val);
-                                    setSpriteHeight(val);
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="spriteWidthQty">Sprite Width Qty:</label>
-                            <input
-                                id="spriteWidthQty"
-                                name="spriteWidthQty"
-                                type="number"
-                                min="1"
-                                value={spriteWidthQty}
-                                onChange={(e) => {
-                                    const [width, height] = imageSize;
-                                    const val = Number.parseInt(e.target.value, 10);
-                                    setSpriteWidth(width / val);
-                                    setSpriteWidthQty(val);
-                                }}
-                            />
-                            <label htmlFor="spriteHeightQty">Sprite Height Qty:</label>
-                            <input
-                                id="spriteHeightQty"
-                                name="spriteHeightQty"
-                                type="number"
-                                min="1"
-                                value={spriteHeightQty}
-                                onChange={(e) => {
-                                    const [width, height] = imageSize;
-                                    const val = Number.parseInt(e.target.value, 10);
-                                    setSpriteHeight(height / val);
-                                    setSpriteHeightQty(val);
-                                }}
-                            />
-                        </div>
+                        <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }}>
+                            <div style={{ display: 'inline-flex' }}>
+                                <TextField
+                                    id="fps"
+                                    label="FPS"
+                                    type="number"
+                                    inputProps={{ min: 1 }}
+                                    sx={{ marginRight: '5px' }}
+                                    value={fps}
+                                    size="small"
+                                    onChange={(e) => setFps(Number.parseInt(e.target.value, 10))}
+                                />
+                                <TextField
+                                    id="scale"
+                                    label="Scale"
+                                    type="number"
+                                    inputProps={{ min: 1 }}
+                                    value={scale}
+                                    size="small"
+                                    onChange={(e) => setScale(Number.parseInt(e.target.value, 10))}
+                                />
+                            </div>
+                        </FormControl>
+                        <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }} size="small">
+                            <div style={{ display: 'inline-flex' }}>
+                                <TextField
+                                    id="spriteWidth"
+                                    label="Sprite Width"
+                                    type="number"
+                                    inputProps={{ min: 1 }}
+                                    sx={{ marginRight: '5px' }}
+                                    value={spriteWidth}
+                                    onChange={(e) => {
+                                        const [width, height] = imageSize;
+                                        const val = Number.parseInt(e.target.value, 10);
+                                        setSpriteWidthQty(width / val);
+                                        setSpriteWidth(val);
+                                    }}
+                                    size="small"
+                                />
+                                <TextField
+                                    id="spriteHeight"
+                                    label="Sprite Height"
+                                    type="number"
+                                    inputProps={{ min: 1 }}
+                                    value={spriteHeight}
+                                    onChange={(e) => {
+                                        const [width, height] = imageSize;
+                                        const val = Number.parseInt(e.target.value, 10);
+                                        setSpriteHeightQty(height / val);
+                                        setSpriteHeight(val);
+                                    }}
+                                    size="small"
+                                />
+                            </div>
+                        </FormControl>
+                        <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }} size="small">
+                            <div style={{ display: 'inline-flex' }}>
+
+                                <TextField
+                                    id="spriteWidthQty"
+                                    label="Sprite Width Qty"
+                                    type="number"
+                                    sx={{ marginRight: '5px' }}
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                    variant="outlined"
+                                    size="small"
+                                    value={spriteWidthQty}
+                                    onChange={(e) => {
+                                        const [width, height] = imageSize;
+                                        const val = Number.parseInt(e.target.value, 10);
+                                        setSpriteWidth(width / val);
+                                        setSpriteWidthQty(val);
+                                    }}
+                                />
+                                <TextField
+                                    id="spriteHeightQty"
+                                    label="Sprite Height Qty"
+                                    type="number"
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                    variant="outlined"
+                                    size="small"
+                                    value={spriteHeightQty}
+                                    onChange={(e) => {
+                                        const [width, height] = imageSize;
+                                        const val = Number.parseInt(e.target.value, 10);
+                                        setSpriteHeight(height / val);
+                                        setSpriteHeightQty(val);
+                                    }}
+                                />
+                            </div>
+                        </FormControl>
                     </div>
-                    <hr />
+                    <Divider sx={{ marginTop: '10px', marginBottom: '10px' }} />
                     {spriteFiles.map(({ image, name, show, category: cat }, index) => (
                         <div key={name}>
                             <input
@@ -346,7 +380,7 @@ function App() {
                             </button>
                         </div>
                     ))}
-                    <hr />
+                    <Divider sx={{ marginTop: '10px', marginBottom: '10px' }} />
                     <label htmlFor="spriteName">Sprite Name:</label>
                     <input
                         id="spriteName"
@@ -361,7 +395,7 @@ function App() {
                     <button onClick={randomize} type="button">
                         Randomize
                     </button>
-                    <hr />
+                    <Divider sx={{ marginTop: '10px', marginBottom: '10px' }} />
                     <div>
                         {spriteFiles.map(({ image, name, show }) => {
                             if (!show) {
@@ -402,7 +436,7 @@ function App() {
                     />
                 </Fragment>
             )}
-        </div>
+        </Container>
     );
 }
 
