@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback, Fragment } from 'react';
+import { KeyboardArrowDown, KeyboardArrowUp, RemoveCircleOutlined } from '@mui/icons-material';
 import {
     Container,
     Select,
@@ -13,14 +14,15 @@ import {
     Box,
     Button,
 } from '@mui/material';
-import { KeyboardArrowDown, KeyboardArrowUp, RemoveCircleOutlined } from '@mui/icons-material';
+
+// Components
 import Dropzone from './components/DropZone';
 
 // Styles
 import styles from './App.module.css';
 
 // Utils
-import { getBase64 } from './utils/utils';
+import { generateNpcName, getBase64 } from './utils/utils';
 
 // Constants
 const MAX_NAME_SIZE = 20;
@@ -33,7 +35,7 @@ function App() {
     const [spriteHeight, setSpriteHeight] = useState(20);
     const [spriteWidthQty, setSpriteWidthQty] = useState(1);
     const [spriteHeightQty, setSpriteHeightQty] = useState(1);
-    const [spriteName, setSpriteName] = useState('sample');
+    const [spriteName, setSpriteName] = useState(generateNpcName());
     const [spriteFiles, setSpriteFiles] = useState([]);
     const [canvasSize, setCanvasSize] = useState([null, null]);
     const [gridSize, setGridSize] = useState([null, null]);
@@ -71,7 +73,7 @@ function App() {
         });
 
         return result;
-    }, [columns, rows, order, isColumns]);
+    }, [columns, rows, isColumns]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -119,6 +121,7 @@ function App() {
         });
 
         setSpriteFiles([...newSprites]);
+        setSpriteName(generateNpcName());
     }, [spriteFiles, spritesCategories]);
 
     const mergeImages = useCallback(() => {
@@ -132,7 +135,7 @@ function App() {
                 ctx.drawImage(htmlImage, 0, 0);
                 if (index + 1 >= filteredSprites.length) {
                     const aDownloadLink = document.createElement('a');
-                    aDownloadLink.download = `${spriteName || 'sample'}.png`;
+                    aDownloadLink.download = `${spriteName || generateNpcName()}.png`;
                     aDownloadLink.href = canvas.current.toDataURL('image/png');
                     aDownloadLink.click();
                 }
@@ -257,29 +260,6 @@ function App() {
                                 </Select>
                             </FormControl>
                         </div>
-                        <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }}>
-                            <div style={{ display: 'inline-flex' }}>
-                                <TextField
-                                    id="fps"
-                                    label="FPS"
-                                    type="number"
-                                    inputProps={{ min: 1 }}
-                                    sx={{ marginRight: '5px' }}
-                                    value={fps}
-                                    size="small"
-                                    onChange={(e) => setFps(Number.parseInt(e.target.value, 10))}
-                                />
-                                <TextField
-                                    id="scale"
-                                    label="Scale"
-                                    type="number"
-                                    inputProps={{ min: 1 }}
-                                    value={scale}
-                                    size="small"
-                                    onChange={(e) => setScale(Number.parseInt(e.target.value, 10))}
-                                />
-                            </div>
-                        </FormControl>
                         <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }} size="small">
                             <div style={{ display: 'inline-flex' }}>
                                 <TextField
@@ -386,6 +366,29 @@ function App() {
                     <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }}>
                         <div style={{ display: 'inline-flex' }}>
                             <TextField
+                                id="fps"
+                                label="FPS"
+                                type="number"
+                                inputProps={{ min: 1 }}
+                                sx={{ marginRight: '5px' }}
+                                value={fps}
+                                size="small"
+                                onChange={(e) => setFps(Number.parseInt(e.target.value, 10))}
+                            />
+                            <TextField
+                                id="scale"
+                                label="Scale"
+                                type="number"
+                                inputProps={{ min: 1 }}
+                                value={scale}
+                                size="small"
+                                onChange={(e) => setScale(Number.parseInt(e.target.value, 10))}
+                            />
+                        </div>
+                    </FormControl>
+                    <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }}>
+                        <div style={{ display: 'inline-flex' }}>
+                            <TextField
                                 id="spriteName"
                                 label="Sprite Name"
                                 variant="outlined"
@@ -411,9 +414,8 @@ function App() {
                             </Button>
                         </div>
                     </FormControl>
-
                     <Divider sx={{ marginTop: '10px', marginBottom: '10px' }} />
-                    <div>
+                    <div style={{ marginBottom: `${(spriteHeight * scale * 1.1) + 100}px` }}>
                         {(new Array(isColumns ? columns : rows)).fill(null).map((v, rc) => (
                             <div style={{ marginLeft: `${spriteWidth * rc * scale}px` }}>
                                 {spriteFiles.map(({ image, name, show }) => {

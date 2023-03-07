@@ -1,11 +1,12 @@
 {
   "name": "character-generator",
   "homepage": ".",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": false,
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
+    "@faker-js/faker": "^7.6.0",
     "@mui/icons-material": "^5.11.11",
     "@mui/material": "^5.11.12",
     "@testing-library/jest-dom": "^5.16.5",
